@@ -1,18 +1,18 @@
-JOB TENURE APPLICATION
+GRADUATE JOB TENURE APPLICATION
 ======================
 
 Mission Statement
 -----------------
-To improve the welfare of medical personnel so as to increase better delivery of medical services.
+To improve the growth of an individual in a company and how education is delivered. To track how many students after graduation grow in companies.
 
 Reason for the app
 ------------------
 
-I chose to work on an app that predicts how many years someone will spend in a company, specifically focusing on medical personnel. This prediction is based on various factors such as age, total working years, job level, and other career-related variables. The goal is to provide healthcare organizations with insights into employee retention and career growth, which can be crucial for improving the welfare of medical personnel. 
+I chose to work on an app that predicts how many years someone will spend in a company, specifically focusing on when they start working either during school or after graduation. This prediction is based on various factors such as age, total working years, job level, and other career-related variables. The goal is to provide organizations with insights into employee retention and career growth, which can be crucial for improving the life and growth of the company.
 
-The data was extracted from Kaggle at https://www.kaggle.com/datasets/jpmiller/employee-attrition-for-healthcare/data?select=watson_healthcare_modified.csv
+The data was extracted from Kaggle at https://www.kaggle.com/datasets/durgeshrao9993/college-placement-data-set
 
-It has 35 columns but only 8 were used to make the model depending on the correlation with the target variable which is Years_At_Company.
+It has 35 columns but only 8 were used to make the model depending on the correlation with the target variable which is Years_At_Company after Graduation.
 
 These are the relationships between the columns that were used
 ![correlationheatmap](image-1.png)
@@ -65,7 +65,7 @@ Clone the repository:
 
 
  
-git clone https://github.com/MKangabire/linear_regression_model.git
+git clone https://github.com/Peace3B/linear_regression_model.git
 Navigate to the project folder:
 
 

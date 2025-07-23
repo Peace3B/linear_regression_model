@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'model/api.dart';
 
 class PredictionPage extends StatefulWidget {
+  const PredictionPage({super.key});
+
   @override
+  // ignore: library_private_types_in_public_api
   _PredictionPageState createState() => _PredictionPageState();
 }
 
@@ -29,8 +33,9 @@ class _PredictionPageState extends State<PredictionPage> {
         age: double.parse(ageController.text),
         totalWorkingYears: double.parse(totalWorkingYearsController.text),
         yearsInCurrentRole: double.parse(yearsInCurrentRoleController.text),
-        yearsSinceLastPromotion:
-            double.parse(yearsSinceLastPromotionController.text),
+        yearsSinceLastPromotion: double.parse(
+          yearsSinceLastPromotionController.text,
+        ),
         yearsWithCurrManager: double.parse(yearsWithCurrManagerController.text),
         jobLevel: double.parse(jobLevelController.text),
         monthlyIncome: double.parse(monthlyIncomeController.text),
@@ -48,8 +53,8 @@ class _PredictionPageState extends State<PredictionPage> {
       backgroundColor: const Color.fromARGB(255, 240, 222, 184),
       appBar: AppBar(
         backgroundColor: const Color.fromARGB(255, 158, 121, 66),
-        title: Text('Job Tenure Calculator'),
-        titleTextStyle: TextStyle(
+        title: const Text('Graduate Job Tenure Calculator'),
+        titleTextStyle: const TextStyle(
           color: Colors.black,
           fontSize: 20,
           fontWeight: FontWeight.bold,
@@ -109,8 +114,9 @@ class _PredictionPageState extends State<PredictionPage> {
               TextFormField(
                 controller: yearsSinceLastPromotionController,
                 keyboardType: TextInputType.number,
-                decoration:
-                    InputDecoration(labelText: 'Years Since Last Promotion'),
+                decoration: InputDecoration(
+                  labelText: 'Years Since Last Promotion',
+                ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter your years since last promotion';
@@ -125,8 +131,9 @@ class _PredictionPageState extends State<PredictionPage> {
               TextFormField(
                 controller: yearsWithCurrManagerController,
                 keyboardType: TextInputType.number,
-                decoration:
-                    InputDecoration(labelText: 'Years with Current Manager'),
+                decoration: InputDecoration(
+                  labelText: 'Years with Current Manager',
+                ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter your years with current manager';
@@ -172,9 +179,7 @@ class _PredictionPageState extends State<PredictionPage> {
               ElevatedButton(
                 onPressed: fetchPrediction,
                 child: const Text('Get Prediction'),
-                style: ElevatedButton.styleFrom(
-                  foregroundColor: Colors.black,
-                ),
+                style: ElevatedButton.styleFrom(foregroundColor: Colors.black),
               ),
               const SizedBox(height: 20),
               if (predictionResult != null)

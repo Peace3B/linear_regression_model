@@ -1,104 +1,219 @@
-GRADUATE JOB TENURE APPLICATION
-======================
+![Python](https://img.shields.io/badge/Python-Model%20%26%20API-green.svg) ![FastAPI](https://img.shields.io/badge/FastAPI-Endpoint-blue.svg) ![Render](https://img.shields.io/badge/Render-Deployment-purple.svg) ![Flutter](https://img.shields.io/badge/Flutter%20App-API%20Client-orange.svg) ![Contributors](https://img.shields.io/badge/contributors-1-yellow.svg)
 
-Mission Statement
------------------
-To improve the growth of an individual in a company and how education is delivered. To track how many students after graduation grow in companies.
+# Educational AI Project: Student Final Math Grade Prediction
 
-Reason for the app
-------------------
+## Mission
 
-I chose to work on an app that predicts how many years someone will spend in a company, specifically focusing on when they start working either during school or after graduation. This prediction is based on various factors such as age, total working years, job level, and other career-related variables. The goal is to provide organizations with insights into employee retention and career growth, which can be crucial for improving the life and growth of the company.
+My mission is to use artificial intelligence to enhance and streamline educational processes in Africa, with the goal of developing a world-class education system and improving learning outcomes for all students. While this project is only a starting point, it serves as an initial step toward understanding how AI can be applied to improve educational outcomes.
 
-The data was extracted from Kaggle at https://www.kaggle.com/datasets/durgeshrao9993/college-placement-data-set
+## Data Description
 
-It has 35 columns but only 8 were used to make the model depending on the correlation with the target variable which is Years_At_Company after Graduation.
+The objective of this project is to predict student final math grades (G3) using various academic, demographic, and social factors. This is based on the **student-mat.csv** dataset, which contains several columns capturing different attributes of students such as family background, school performance, and social behaviors. The ultimate goal is to identify students at risk of underperforming, providing educators and parents with the ability to offer timely support and interventions. By predicting student outcomes in mathematics, this project aims to improve educational practices and the way students are supported throughout their learning journey.
 
-These are the relationships between the columns that were used
-![correlationheatmap](image-1.png)
-![Visualization distribution](download%20(2).png)
+### Data Source
+- **Dataset**: [student-mat.csv](https://www.kaggle.com/code/janiobachmann/predicting-grades-for-the-school-year/)
+- **Source**: Kaggle
 
-API Endpoint
-------------
+### Demo Video
+- **Youtube**: [student-grade-prediction-video](https://youtu.be/B4OS_Tp-6kg)
 
-This API provides predictions based on input values using machine learning models (Linear Regression, Decision Tree Regressor, and Random Forest). The best-performing model has been deployed as a REST API.
+### Citation
+This dataset is provided by **Janio Martinez Bachmann**, a Kaggle Grandmaster and Business Intelligence Analyst at Roche. The dataset can be accessed on Kaggle and used for educational and predictive analysis purposes.
 
-API URL
-You can access the prediction API at the following public URL:
+- **Janio Martinez Bachmann**
+  - Kaggle Grandmaster
+  - Barcelona, Catalonia, Spain
+  - BI Analyst at Roche
 
-https://api-durq.onrender.com/
+### Installation Before Running Sections of the Project
 
-Method: POST
+- **Clone the repository**.
+    ```bash
+    git clone https://github.com/eobolo/Machine-Learning-Regression-Summative.git
+    ```
+## API Overview
+This FastAPI-based web service predicts the final math grade (G3) of students using various academic, demographic, and social factors. The model takes into account data such as the student's family background, study habits, and social life, providing a prediction that helps educators and parents identify students who might need additional support.
 
-Request Body (JSON):
+### Endpoints
 
+### **Endpoint**: `/predict`
+- **Method**: `POST`
+- **Description**: This endpoint predicts a student's final grade based on the provided input data.
+- **Input Format**: JSON request body containing various attributes related to the student.
+- **Response Format**: JSON response with the predicted final grade.
 
+#### Example Request:
+```json
 {
-    age: float  
-    total_working_years: float,
-    years_in_current_role: float,
-    years_since_last_promotion: float,
-    years_with_curr_manager: float,
-    job_level: float,
-    monthly_income: float,
+  "school": "GP",
+  "sex": "F",
+  "address": "U",
+  "famsize": "GT3",
+  "Pstatus": "T",
+  "Mjob": "teacher",
+  "Fjob": "health",
+  "reason": "course",
+  "guardian": "mother",
+  "schoolsup": "yes",
+  "famsup": "yes",
+  "paid": "yes",
+  "activities": "yes",
+  "nursery": "yes",
+  "higher": "yes",
+  "internet": "yes",
+  "romantic": "no",
+  "age": 17,
+  "Medu": 3,
+  "Fedu": 3,
+  "traveltime": 2,
+  "studytime": 2,
+  "failures": 0,
+  "famrel": 5,
+  "freetime": 4,
+  "goout": 3,
+  "Dalc": 1,
+  "Walc": 1,
+  "health": 3,
+  "absences": 10
 }
-Response (JSON):
-
-
+```
+### Example Response:
+```json
 {
-  "prediction": int
+  "final_grade_prediction": 16.4
 }
-Swagger UI for Testing
-You can test the API using Swagger UI by visiting the following link:
+```
 
-https://api-durq.onrender.com/docs
+### **Endpoint**: `/columns`
+- **Method**: `GET`
+- **Description**: This endpoint returns metadata about the columns used in the prediction model.
+- **Response Format**: JSON response with column names used in training the model.
 
-Swagger UI provides an interactive interface for sending requests to the API and viewing responses.
+#### Example Response:
+```json
+[
+    {
+        "name": "school",
+        "type": "str",
+        "allowed_values": ["GP", "MS"],
+        "description": "The school of the student. 'GP' for Gabriel Pereira and 'MS' for Mousinho da Silveira."
+    },
+    {
+        "name": "higher",
+        "type": "str",
+        "allowed_values": ["yes", "no"],
+        "description": "Wants to pursue higher education: 'yes' or 'no'."
+    },
+    {
+        "name": "internet",
+        "type": "str",
+        "allowed_values": ["yes", "no"],
+        "description": "Internet access at home: 'yes' or 'no'."
+    },
+    .
+    .
+    .
+    {
+        "name": "Walc",
+        "type": "int",
+        "allowed_values": [1, 2, 3, 4, 5],
+        "description": "Weekend alcohol consumption (1 = very low, 5 = very high)."
+    },
+    {
+        "name": "health",
+        "type": "int",
+        "allowed_values": [1, 2, 3, 4, 5],
+        "description": "Current health status (1 = very bad, 5 = very good)."
+    }
+]
+```
+# How to Use the API
 
-Mobile App
------------
+## Deploy the FastAPI Application
+The application is deployed on Render and is accessible at the following URL:  
+[https://student-math-final-grade-submission.onrender.com/docs](https://student-math-final-grade-submission.onrender.com/docs)  
+This link opens the Swagger UI, where you can test the API endpoints.
 
-This app allows users to input values and get predictions from the API in real-time.
+## Interact with the API
+- Visit the Swagger UI to view and test the available endpoints.
+- Use the `/predict` endpoint to submit student data and receive grade predictions.
+- Use the `/columns` endpoint to get information on the dataset used in the model.
 
-Instructions to Run the Mobile App
-Clone the repository:
+## Dataset and Model Details
+
+### Dataset:
+The dataset used for training the model is `student-mat.csv`, which contains data related to students' academic performance and their demographic, social, and academic factors. The features in the dataset include both categorical and numerical attributes such as family background, study habits, and student behavior.
+
+### Objective:
+The goal of this project is to predict student final math grades (G3) based on various academic, demographic, and social factors. This prediction can help identify students at risk of underperforming, enabling early intervention and support.
+
+### Model:
+The model used to predict the final grade is trained on the dataset mentioned above and is saved as `best_model.pkl`. The model is then loaded and used to make predictions when a POST request is made to the `/predict` endpoint.
+
+### Metadata:
+The metadata file (`metadata.json`) contains additional information about the columns used in the dataset and model, which can be retrieved using the `/columns` endpoint.
+
+## Installation & Local Testing
+
+### Prerequisites:
+- Python 3.11 or later
+- FastAPI
+- Uvicorn
+- Pandas
+- Joblib
+- Pydantic
+- Scikit-learn
+
+## Navigate to the API directory
+```bash
+cd summative/API
+```
+
+### Install Dependencies:
+```bash
+pip install -r requirements.txt
+```
+### Run Locally:
+To run the application locally for testing purposes, use the following command:
+
+```bash
+uvicorn API.prediction:app --reload
+```
 
 
- 
-git clone https://github.com/Peace3B/linear_regression_model.git
-Navigate to the project folder:
+## Flutter App Documentation
 
+### Overview
+The Flutter application allows users to input student data through a form with dropdown menus for categorical fields and text inputs for numerical fields. Upon submission, the app sends a request to the `/predict` endpoint of the API to fetch the predicted final grade. The result is displayed on a beautifully designed card with an elegant screen transition animation.
 
- 
-cd linear_regression_model
+### Features
+1. **Input Form**:
+   - Dropdown menus for categorical fields (e.g., `school`, `sex`, `address`).
+   - Text input fields for numerical fields (e.g., `age`, `absences`).
 
-Install Flutter (if you haven't already): Follow the installation guide on the Flutter website.
+2. **Prediction Screen**:
+   - Displays the predicted final grade on a stylish card.
+   - Prediction value is formatted to 3 decimal places for clarity.
+   - Includes a "Back" button to return to the input form.
 
-### Run flutter pub get to install the required dependencies:
+3. **Smooth Screen Transitions**:
+   - Custom animations for navigating between screens using the `PageRouteBuilder` with fade-in and scale effects.
 
+4. **API Integration**:
+   - Sends POST requests to the `/predict` endpoint with the user-provided data.
+   - Handles errors gracefully, displaying error messages in case of failed requests.
 
-### Run the app: Connect your emulator or device, then run:
+### Installation & Running the App
 
-flutter run
+1. Navigate to the flutter app directory.
+    ```bash
+    cd summative/FlutterApp/student_math_final_grade_prediction_app
+    ```
 
-The app will start, and you can input values for the following features to get predictions from the model:
-
-Age: The age of the employee.
-Total Working Years: Total number of years the employee has worked in their career.
-Job Level: The level or rank of the employee within the company.
-Years in Current Role: Number of years the employee has spent in their current position.
-Years Since Last Promotion: The time in years since the employee's last promotion.
-Years with Current Manager: Duration in years the employee has been working with their current manager.
-Monthly Income: The employee’s monthly income.
-Once you input these values, the app will use the machine learning model to predict how many years the employee will likely stay at the company.
-
-YouTube Demo
-You can watch a demo of the mobile app and how it interacts with the API here:
-
-[Demo Video (2 minutes)](https://drive.google.com/file/d/1EvXOjwYqWGygexRpijTr3BMNkT1kMEq7/view?usp=sharing)
-
-### Technologies Used
-API: FastAPI, Python
-Machine Learning: Scikit-learn, Linear Regression, Decision Tree, Random Forest
-Mobile App: Flutter
-API Documentation: Swagger UI
+2. Install dependencies by running:
+    ```bash
+    flutter pub get
+    ```
+    ```bash
+    flutter run
+    ```

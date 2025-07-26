@@ -4,7 +4,7 @@
 
 ## Mission
 
-My mission is to use artificial intelligence to enhance and streamline educational processes in Africa, with the goal of developing a world-class education system and improving learning outcomes for all students. While this project is only a starting point, it serves as an initial step toward understanding how AI can be applied to improve educational outcomes.
+My mission is to use artificial intelligence to help more children in Africa access education and ensure that what they receive meets high standards. This means not only getting kids into classrooms, but also making sure the learning environment, teaching quality, and support systems around them truly help them grow and succeed.
 
 ## Data Description
 
@@ -15,7 +15,7 @@ The objective of this project is to predict student final math grades (G3) using
 - **Source**: Kaggle
 
 ### Demo Video
-- **Youtube**: [student-grade-prediction-video](https://youtu.be/B4OS_Tp-6kg)
+- **Youtube**: [student-grade-prediction-video] [https://youtu.be/FJR8SLW7_oU]
 
 ### Citation
 This dataset is provided by **Janio Martinez Bachmann**, a Kaggle Grandmaster and Business Intelligence Analyst at Roche. The dataset can be accessed on Kaggle and used for educational and predictive analysis purposes.
@@ -29,7 +29,7 @@ This dataset is provided by **Janio Martinez Bachmann**, a Kaggle Grandmaster an
 
 - **Clone the repository**.
     ```bash
-    git clone https://github.com/eobolo/Machine-Learning-Regression-Summative.git
+    git clone https://github.com/Peace3B/linear_regression_model.git
     ```
 ## API Overview
 This FastAPI-based web service predicts the final math grade (G3) of students using various academic, demographic, and social factors. The model takes into account data such as the student's family background, study habits, and social life, providing a prediction that helps educators and parents identify students who might need additional support.

@@ -122,7 +122,19 @@ class _PredictionScreenState extends State<PredictionScreen> {
   final healthController = TextEditingController();
   final absencesController = TextEditingController();
 
+  // Loading state for API calls
+  bool _isLoading = false;
+
   Future<void> _predictGrade(BuildContext context) async {
+    // Validate input ranges according to API constraints
+    if (!_validateInputRanges()) {
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
     final input = {
       "school": school.value,
       "sex": sex.value,
@@ -141,51 +153,181 @@ class _PredictionScreenState extends State<PredictionScreen> {
       "higher": higher.value,
       "internet": internet.value,
       "romantic": romantic.value,
-      "age": int.tryParse(ageController.text) ?? 14,
+      "age": int.tryParse(ageController.text) ?? 16,
       "Medu": int.tryParse(meduController.text) ?? 0,
       "Fedu": int.tryParse(feduController.text) ?? 0,
       "traveltime": int.tryParse(traveltimeController.text) ?? 1,
       "studytime": int.tryParse(studytimeController.text) ?? 1,
       "failures": int.tryParse(failuresController.text) ?? 0,
-      "famrel": int.tryParse(famrelController.text) ?? 1,
-      "freetime": int.tryParse(freetimeController.text) ?? 1,
-      "goout": int.tryParse(gooutController.text) ?? 1,
+      "famrel": int.tryParse(famrelController.text) ?? 4,
+      "freetime": int.tryParse(freetimeController.text) ?? 3,
+      "goout": int.tryParse(gooutController.text) ?? 3,
       "Dalc": int.tryParse(dalcController.text) ?? 1,
       "Walc": int.tryParse(walcController.text) ?? 1,
-      "health": int.tryParse(healthController.text) ?? 1,
+      "health": int.tryParse(healthController.text) ?? 5,
       "absences": int.tryParse(absencesController.text) ?? 0,
     };
 
     try {
+      // Show loading indicator
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Row(
+              children: [
+                CircularProgressIndicator(color: Colors.white),
+                SizedBox(width: 16),
+                Text('Predicting grade...'),
+              ],
+            ),
+            duration: Duration(seconds: 30),
+          ),
+        );
+      }
+
       final response = await http.post(
         Uri.parse(
           "https://student-math-final-grade-submission.onrender.com/predict",
         ),
-        headers: {"Content-Type": "application/json"},
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+        },
         body: jsonEncode(input),
+      ).timeout(
+        const Duration(seconds: 30),
+        onTimeout: () {
+          throw Exception('Request timeout - please try again');
+        },
       );
+
+      // Hide loading snackbar
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).clearSnackBars();
+      }
+
       if (response.statusCode == 200) {
-        final prediction = jsonDecode(response.body)["final_grade_prediction"];
+        final responseData = jsonDecode(response.body);
+        final prediction = responseData["final_grade_prediction"];
+        
         if (context.mounted) {
           Navigator.push(
             context,
-            _createRoute(ResultScreen(prediction: prediction)),
+            _createRoute(ResultScreen(
+              prediction: prediction is double ? prediction : prediction.toDouble(),
+              inputData: input,
+            )),
+          );
+        }
+      } else if (response.statusCode == 400) {
+        // Handle validation errors from API
+        final errorData = jsonDecode(response.body);
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Validation Error: ${errorData['detail'] ?? 'Invalid input data'}'),
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 5),
+            ),
           );
         }
       } else {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error: ${response.reasonPhrase}')),
+            SnackBar(
+              content: Text('Server Error: ${response.reasonPhrase} (${response.statusCode})'),
+              backgroundColor: Colors.red,
+            ),
           );
         }
       }
     } catch (e) {
       if (context.mounted) {
+        ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
+          SnackBar(
+            content: Text('Connection Error: ${e.toString()}'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 5),
+            action: SnackBarAction(
+              label: 'Retry',
+              onPressed: () => _predictGrade(context),
+            ),
+          ),
         );
       }
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
     }
+  }
+
+  bool _validateInputRanges() {
+    // Validate age (14-22)
+    final age = int.tryParse(ageController.text);
+    if (age == null || age < 14 || age > 22) {
+      _showValidationError('Age must be between 14 and 22');
+      return false;
+    }
+
+    // Validate education levels (0-4)
+    final medu = int.tryParse(meduController.text);
+    final fedu = int.tryParse(feduController.text);
+    if (medu == null || medu < 0 || medu > 4) {
+      _showValidationError('Mother\'s education must be between 0 and 4');
+      return false;
+    }
+    if (fedu == null || fedu < 0 || fedu > 4) {
+      _showValidationError('Father\'s education must be between 0 and 4');
+      return false;
+    }
+
+    // Validate 1-5 scale fields
+    final fieldsToValidate = {
+      'Travel Time': traveltimeController,
+      'Study Time': studytimeController,
+      'Family Relations': famrelController,
+      'Free Time': freetimeController,
+      'Going Out': gooutController,
+      'Workday Alcohol': dalcController,
+      'Weekend Alcohol': walcController,
+      'Health': healthController,
+    };
+
+    for (final entry in fieldsToValidate.entries) {
+      final value = int.tryParse(entry.value.text);
+      if (value == null || value < 1 || value > 5) {
+        _showValidationError('${entry.key} must be between 1 and 5');
+        return false;
+      }
+    }
+
+    // Validate failures (0-3)
+    final failures = int.tryParse(failuresController.text);
+    if (failures == null || failures < 0 || failures > 3) {
+      _showValidationError('Failures must be between 0 and 3');
+      return false;
+    }
+
+    // Validate absences (0-100)
+    final absences = int.tryParse(absencesController.text);
+    if (absences == null || absences < 0 || absences > 100) {
+      _showValidationError('Absences must be between 0 and 100');
+      return false;
+    }
+
+    return true;
+  }
+
+  void _showValidationError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.orange,
+        duration: const Duration(seconds: 3),
+      ),
+    );
   }
 
   Route _createRoute(Widget screen) {
@@ -283,13 +425,45 @@ class _PredictionScreenState extends State<PredictionScreen> {
               _buildNumericField("Health", healthController),
               _buildNumericField("Absences", absencesController),
               const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () {
-                  if (_formKey.currentState!.validate()) {
-                    _predictGrade(context);
-                  }
-                },
-                child: const Text("Predict"),
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton(
+                  onPressed: _isLoading
+                      ? null
+                      : () {
+                          if (_formKey.currentState!.validate()) {
+                            _predictGrade(context);
+                          }
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: _isLoading
+                      ? const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            ),
+                            SizedBox(width: 10),
+                            Text("Predicting..."),
+                          ],
+                        )
+                      : const Text(
+                          "Predict Grade",
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        ),
+                ),
               ),
             ],
           ),
@@ -345,24 +519,97 @@ class _PredictionScreenState extends State<PredictionScreen> {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: TextFormField(
-        decoration: InputDecoration(labelText: label),
+        decoration: InputDecoration(
+          labelText: label,
+          hintText: _getHintForField(label),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        ),
         controller: controller,
         keyboardType: TextInputType.number,
         validator: (value) {
           if (value == null || value.isEmpty) {
             return 'Please enter $label';
           }
+          final intValue = int.tryParse(value);
+          if (intValue == null) {
+            return 'Please enter a valid number';
+          }
+          
+          // Apply specific validation based on field type
+          final validation = _validateFieldRange(label, intValue);
+          if (validation != null) {
+            return validation;
+          }
+          
           return null;
         },
       ),
     );
   }
+
+  String? _getHintForField(String label) {
+    switch (label.toLowerCase()) {
+      case 'age':
+        return '14-22 years';
+      case String() when label.contains('education'):
+        return '0-4 (0=none, 4=higher)';
+      case String() when label.contains('time') || label.contains('relations') || 
+                          label.contains('free') || label.contains('going') || 
+                          label.contains('alcohol') || label.contains('health'):
+        return '1-5 scale';
+      case 'failures':
+        return '0-3 past failures';
+      case 'absences':
+        return '0-100 school absences';
+      default:
+        return null;
+    }
+  }
+
+  String? _validateFieldRange(String label, int value) {
+    switch (label.toLowerCase()) {
+      case 'age':
+        return (value < 14 || value > 22) ? 'Age must be between 14-22' : null;
+      case String() when label.contains('education'):
+        return (value < 0 || value > 4) ? 'Education level must be 0-4' : null;
+      case String() when label.contains('time') || label.contains('relations') || 
+                          label.contains('free') || label.contains('going') || 
+                          label.contains('alcohol') || label.contains('health'):
+        return (value < 1 || value > 5) ? '${label} must be 1-5' : null;
+      case 'failures':
+        return (value < 0 || value > 3) ? 'Failures must be 0-3' : null;
+      case 'absences':
+        return (value < 0 || value > 100) ? 'Absences must be 0-100' : null;
+      default:
+        return null;
+    }
+  }
 }
 
 class ResultScreen extends StatelessWidget {
   final double prediction;
+  final Map<String, dynamic>? inputData;
 
-  const ResultScreen({super.key, required this.prediction});
+  const ResultScreen({super.key, required this.prediction, this.inputData});
+
+  Color _getGradeColor(double grade) {
+    if (grade >= 16) return Colors.green[700]!;
+    if (grade >= 14) return Colors.blue[700]!;
+    if (grade >= 12) return Colors.orange[700]!;
+    if (grade >= 10) return Colors.red[600]!;
+    return Colors.red[800]!;
+  }
+
+  String _getGradeDescription(double grade) {
+    if (grade >= 16) return "Excellent Performance";
+    if (grade >= 14) return "Good Performance";
+    if (grade >= 12) return "Satisfactory Performance";
+    if (grade >= 10) return "Needs Improvement";
+    return "Poor Performance";
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -370,68 +617,163 @@ class ResultScreen extends StatelessWidget {
       appBar: AppBar(
         automaticallyImplyLeading: false,
         centerTitle: true,
+        backgroundColor: _getGradeColor(prediction),
+        foregroundColor: Colors.white,
         title: const Text(
-          "Prediction Result",
+          "Grade Prediction Result",
           style: TextStyle(
-            fontSize: 24,
+            fontSize: 20,
             fontWeight: FontWeight.bold,
-            color: Colors.blueAccent,
           ),
         ),
       ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Card(
-            elevation: 8.0,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(15.0),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text(
-                    "Prediction Summary",
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.blueAccent,
+      body: SingleChildScrollView(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              children: [
+                // Main Result Card
+                Card(
+                  elevation: 8.0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(15.0),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(24.0),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          prediction >= 14 ? Icons.star : Icons.warning,
+                          size: 48,
+                          color: _getGradeColor(prediction),
+                        ),
+                        const SizedBox(height: 16),
+                        const Text(
+                          "Final Grade Prediction",
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 16,
+                          ),
+                          decoration: BoxDecoration(
+                            color: _getGradeColor(prediction).withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: _getGradeColor(prediction),
+                              width: 2,
+                            ),
+                          ),
+                          child: Column(
+                            children: [
+                              Text(
+                                prediction.toStringAsFixed(2),
+                                style: TextStyle(
+                                  fontSize: 48,
+                                  fontWeight: FontWeight.bold,
+                                  color: _getGradeColor(prediction),
+                                ),
+                              ),
+                              Text(
+                                "out of 20",
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          _getGradeDescription(prediction),
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                            color: _getGradeColor(prediction),
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 20),
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.blue[50],
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.info_outline, color: Colors.blue[700]),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  "This prediction is based on machine learning analysis of student performance factors.",
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.blue[700],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 20),
-                  const Text(
-                    "The final grade prediction for the student is:",
-                    style: TextStyle(fontSize: 18),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 15),
-                  Text(
-                    prediction.toStringAsFixed(3),
-                    style: TextStyle(
-                      fontSize: 36,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.green[700],
-                    ),
-                  ),
-                  const SizedBox(height: 30),
-                  ElevatedButton.icon(
-                    onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.arrow_back),
-                    label: const Text("Back"),
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 12,
+                ),
+                
+                const SizedBox(height: 16),
+                
+                // Action Buttons
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: () => Navigator.pop(context),
+                        icon: const Icon(Icons.arrow_back),
+                        label: const Text("New Prediction"),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
                       ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () {
+                          // Share functionality could be added here
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text("Share functionality coming soon!"),
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.share),
+                        label: const Text("Share"),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                ],
-              ),
+                  ],
+                ),
+              ],
             ),
           ),
         ),

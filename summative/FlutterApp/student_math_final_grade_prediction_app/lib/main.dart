@@ -2,6 +2,62 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
+// Enums for categorical data
+enum School { GP, MS }
+
+enum Sex { M, F }
+
+enum Address { U, R }
+
+enum FamilySize { GT3, LE3 }
+
+enum ParentStatus { T, A }
+
+enum Job { at_home, health, other, services, teacher }
+
+enum Reason { course, home, other, reputation }
+
+enum Guardian { mother, father, other }
+
+enum YesNo { yes, no }
+
+// Extension to get string values from enums
+extension SchoolExtension on School {
+  String get value => name;
+}
+
+extension SexExtension on Sex {
+  String get value => name;
+}
+
+extension AddressExtension on Address {
+  String get value => name;
+}
+
+extension FamilySizeExtension on FamilySize {
+  String get value => name;
+}
+
+extension ParentStatusExtension on ParentStatus {
+  String get value => name;
+}
+
+extension JobExtension on Job {
+  String get value => name;
+}
+
+extension ReasonExtension on Reason {
+  String get value => name;
+}
+
+extension GuardianExtension on Guardian {
+  String get value => name;
+}
+
+extension YesNoExtension on YesNo {
+  String get value => name;
+}
+
 void main() {
   runApp(const GradePredictorApp());
 }
@@ -32,24 +88,24 @@ class PredictionScreen extends StatefulWidget {
 class _PredictionScreenState extends State<PredictionScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  // Dropdown menu variables for categorical fields
-  String school = "GP";
-  String sex = "M";
-  String address = "U";
-  String famsize = "GT3";
-  String pstatus = "T";
-  String mjob = "teacher";
-  String fjob = "teacher";
-  String reason = "reputation";
-  String guardian = "mother";
-  String schoolsup = "yes";
-  String famsup = "yes";
-  String paid = "yes";
-  String activities = "yes";
-  String nursery = "yes";
-  String higher = "yes";
-  String internet = "yes";
-  String romantic = "yes";
+  // Enum variables for categorical fields
+  School school = School.GP;
+  Sex sex = Sex.M;
+  Address address = Address.U;
+  FamilySize famsize = FamilySize.GT3;
+  ParentStatus pstatus = ParentStatus.T;
+  Job mjob = Job.teacher;
+  Job fjob = Job.teacher;
+  Reason reason = Reason.reputation;
+  Guardian guardian = Guardian.mother;
+  YesNo schoolsup = YesNo.yes;
+  YesNo famsup = YesNo.yes;
+  YesNo paid = YesNo.yes;
+  YesNo activities = YesNo.yes;
+  YesNo nursery = YesNo.yes;
+  YesNo higher = YesNo.yes;
+  YesNo internet = YesNo.yes;
+  YesNo romantic = YesNo.yes;
 
   // Text controllers for numerical fields
   final ageController = TextEditingController();
@@ -68,23 +124,23 @@ class _PredictionScreenState extends State<PredictionScreen> {
 
   Future<void> _predictGrade(BuildContext context) async {
     final input = {
-      "school": school,
-      "sex": sex,
-      "address": address,
-      "famsize": famsize,
-      "Pstatus": pstatus,
-      "Mjob": mjob,
-      "Fjob": fjob,
-      "reason": reason,
-      "guardian": guardian,
-      "schoolsup": schoolsup,
-      "famsup": famsup,
-      "paid": paid,
-      "activities": activities,
-      "nursery": nursery,
-      "higher": higher,
-      "internet": internet,
-      "romantic": romantic,
+      "school": school.value,
+      "sex": sex.value,
+      "address": address.value,
+      "famsize": famsize.value,
+      "Pstatus": pstatus.value,
+      "Mjob": mjob.value,
+      "Fjob": fjob.value,
+      "reason": reason.value,
+      "guardian": guardian.value,
+      "schoolsup": schoolsup.value,
+      "famsup": famsup.value,
+      "paid": paid.value,
+      "activities": activities.value,
+      "nursery": nursery.value,
+      "higher": higher.value,
+      "internet": internet.value,
+      "romantic": romantic.value,
       "age": int.tryParse(ageController.text) ?? 14,
       "Medu": int.tryParse(meduController.text) ?? 0,
       "Fedu": int.tryParse(feduController.text) ?? 0,
@@ -168,45 +224,49 @@ class _PredictionScreenState extends State<PredictionScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildDropdownField(
-                  "School", ["GP", "MS"], (value) => school = value!),
-              _buildDropdownField("Sex", ["M", "F"], (value) => sex = value!),
-              _buildDropdownField(
-                  "Address", ["U", "R"], (value) => address = value!),
-              _buildDropdownField(
-                  "Family Size", ["GT3", "LE3"], (value) => famsize = value!),
-              _buildDropdownField(
-                  "Parent Status", ["T", "A"], (value) => pstatus = value!),
-              _buildDropdownField(
-                  "Mother's Job",
-                  ["at_home", "health", "other", "services", "teacher"],
-                  (value) => mjob = value!),
-              _buildDropdownField(
-                  "Father's Job",
-                  ["at_home", "health", "other", "services", "teacher"],
-                  (value) => fjob = value!),
-              _buildDropdownField(
-                  "Reason",
-                  ["course", "home", "other", "reputation"],
-                  (value) => reason = value!),
-              _buildDropdownField("Guardian", ["mother", "father", "other"],
-                  (value) => guardian = value!),
-              _buildDropdownField("School Support", ["yes", "no"],
-                  (value) => schoolsup = value!),
-              _buildDropdownField(
-                  "Family Support", ["yes", "no"], (value) => famsup = value!),
-              _buildDropdownField(
-                  "Paid Classes", ["yes", "no"], (value) => paid = value!),
-              _buildDropdownField(
-                  "Activities", ["yes", "no"], (value) => activities = value!),
-              _buildDropdownField(
-                  "Nursery", ["yes", "no"], (value) => nursery = value!),
-              _buildDropdownField("Higher Education", ["yes", "no"],
-                  (value) => higher = value!),
-              _buildDropdownField(
-                  "Internet", ["yes", "no"], (value) => internet = value!),
-              _buildDropdownField("Romantic Relationship", ["yes", "no"],
-                  (value) => romantic = value!),
+              _buildEnumDropdownField<School>("School", School.values, school,
+                  (value) => setState(() => school = value!)),
+              _buildEnumDropdownField<Sex>("Sex", Sex.values, sex,
+                  (value) => setState(() => sex = value!)),
+              _buildEnumDropdownField<Address>("Address", Address.values,
+                  address, (value) => setState(() => address = value!)),
+              _buildEnumDropdownField<FamilySize>(
+                  "Family Size",
+                  FamilySize.values,
+                  famsize,
+                  (value) => setState(() => famsize = value!)),
+              _buildEnumDropdownField<ParentStatus>(
+                  "Parent Status",
+                  ParentStatus.values,
+                  pstatus,
+                  (value) => setState(() => pstatus = value!)),
+              _buildEnumDropdownField<Job>("Mother's Job", Job.values, mjob,
+                  (value) => setState(() => mjob = value!)),
+              _buildEnumDropdownField<Job>("Father's Job", Job.values, fjob,
+                  (value) => setState(() => fjob = value!)),
+              _buildEnumDropdownField<Reason>("Reason", Reason.values, reason,
+                  (value) => setState(() => reason = value!)),
+              _buildEnumDropdownField<Guardian>("Guardian", Guardian.values,
+                  guardian, (value) => setState(() => guardian = value!)),
+              _buildEnumDropdownField<YesNo>("School Support", YesNo.values,
+                  schoolsup, (value) => setState(() => schoolsup = value!)),
+              _buildEnumDropdownField<YesNo>("Family Support", YesNo.values,
+                  famsup, (value) => setState(() => famsup = value!)),
+              _buildEnumDropdownField<YesNo>("Paid Classes", YesNo.values, paid,
+                  (value) => setState(() => paid = value!)),
+              _buildEnumDropdownField<YesNo>("Activities", YesNo.values,
+                  activities, (value) => setState(() => activities = value!)),
+              _buildEnumDropdownField<YesNo>("Nursery", YesNo.values, nursery,
+                  (value) => setState(() => nursery = value!)),
+              _buildEnumDropdownField<YesNo>("Higher Education", YesNo.values,
+                  higher, (value) => setState(() => higher = value!)),
+              _buildEnumDropdownField<YesNo>("Internet", YesNo.values, internet,
+                  (value) => setState(() => internet = value!)),
+              _buildEnumDropdownField<YesNo>(
+                  "Romantic Relationship",
+                  YesNo.values,
+                  romantic,
+                  (value) => setState(() => romantic = value!)),
               _buildNumericField("Age", ageController),
               _buildNumericField("Mother's Education (Medu)", meduController),
               _buildNumericField("Father's Education (Fedu)", feduController),
@@ -238,22 +298,47 @@ class _PredictionScreenState extends State<PredictionScreen> {
     );
   }
 
-  Widget _buildDropdownField(
-      String label, List<String> options, Function(String?) onChanged) {
+  Widget _buildEnumDropdownField<T extends Enum>(
+      String label, List<T> options, T currentValue, Function(T?) onChanged) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: DropdownButtonFormField<String>(
+      child: DropdownButtonFormField<T>(
         decoration: InputDecoration(labelText: label),
-        value: options[0],
-        items: options.map((String value) {
-          return DropdownMenuItem<String>(
+        value: currentValue,
+        items: options.map((T value) {
+          return DropdownMenuItem<T>(
             value: value,
-            child: Text(value),
+            child: Text(_getEnumDisplayValue(value)),
           );
         }).toList(),
         onChanged: onChanged,
       ),
     );
+  }
+
+  String _getEnumDisplayValue<T extends Enum>(T enumValue) {
+    switch (enumValue.runtimeType) {
+      case School:
+        return (enumValue as School).value;
+      case Sex:
+        return (enumValue as Sex).value;
+      case Address:
+        return (enumValue as Address).value;
+      case FamilySize:
+        return (enumValue as FamilySize).value;
+      case ParentStatus:
+        return (enumValue as ParentStatus).value;
+      case Job:
+        return (enumValue as Job).value;
+      case Reason:
+        return (enumValue as Reason).value;
+      case Guardian:
+        return (enumValue as Guardian).value;
+      case YesNo:
+        return (enumValue as YesNo).value;
+      default:
+        return enumValue.name;
+    }
   }
 
   Widget _buildNumericField(String label, TextEditingController controller) {
